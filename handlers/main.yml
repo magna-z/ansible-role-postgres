@@ -1,0 +1,16 @@
+---
+- name: restart service postgres
+  ansible.builtin.systemd:
+    name: postgres
+    daemon_reload: true
+    enabled: true
+    state: restarted
+  register: _restart_service_postgres_handler
+
+- name: reload service postgres
+  ansible.builtin.systemd:
+    name: postgres
+    daemon_reload: true
+    enabled: true
+    state: reloaded
+  when: _restart_service_postgres_handler is not defined or _restart_service_postgres_handler is skipped

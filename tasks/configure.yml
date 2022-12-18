@@ -1,0 +1,38 @@
+---
+- name: wait postgres
+  ansible.builtin.wait_for:
+    host: localhost
+    port: 5432
+    timeout: 60
+  retries: 5
+
+- name: ensure superuser password
+  community.docker.docker_container_exec:
+    container: postgres
+    command: "psql --quiet --command=\"ALTER ROLE postgres WITH PASSWORD '{{ postgres_superuser_password }}';\""
+  when: _data_directory.changed
+
+- name: ensure roles and databases
+  block:
+  - name: ensure roles
+    community.postgresql.postgresql_user:
+      name: "{{ item.username }}"
+      password: "{{ item.password }}"
+      role_attr_flags: "{{ item.attributes | default([]) | join(',') }}"
+      login_host: "{{ inventory_hostname }}"
+      login_user: postgres
+      login_password: "{{ postgres_superuser_password }}"
+    with_items: "{{ postgres_roles }}"
+  - name: ensure databases
+    community.postgresql.postgresql_db:
+      name: "{{ item.name }}"
+      owner: "{{ item.owner | default(omit) }}"
+      encoding: "{{ item.encoding | default(omit) }}"
+      lc_collate: "{{ item.collate | default(omit) }}"
+      lc_ctype: "{{ item.ctype | default(omit) }}"
+      login_host: "{{ inventory_hostname }}"
+      login_user: postgres
+      login_password: "{{ postgres_superuser_password }}"
+    with_items: "{{ postgres_databases }}"
+  delegate_to: localhost
+  become: false

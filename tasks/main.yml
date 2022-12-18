@@ -1,0 +1,105 @@
+---
+- name: check mandatory variables
+  ansible.builtin.assert:
+    that:
+    - postgres_superuser_password is defined
+    quiet: true
+
+- name: ensure group
+  ansible.builtin.group:
+    name: postgres
+    gid: "{{ postgres_gid }}"
+
+- name: ensure user
+  ansible.builtin.user:
+    name: postgres
+    group: postgres
+    shell: /sbin/nologin
+    uid: "{{ postgres_uid }}"
+    home: /var/lib/postgres
+    create_home: false
+
+- name: ensure data directory
+  ansible.builtin.file:
+    state: directory
+    path: /var/lib/postgres
+    owner: "{{ postgres_uid }}"
+    group: "{{ postgres_gid }}"
+    mode: 0700
+  register: _data_directory
+
+- name: posgtres init
+  community.docker.docker_container:
+    detach: false
+    cleanup: true
+    network_mode: host
+    log_driver: json-file
+    name: postgres-init
+    command: "pg_ctl init -D /var/lib/postgres -s"
+    image: "{{ postgres_docker_image }}"
+    user: "{{ postgres_uid }}:{{ postgres_gid }}"
+    volumes: [/var/lib/postgres:/var/lib/postgres:rw]
+  when: _data_directory.changed
+
+- name: ensure configs
+  notify: reload service postgres
+  ansible.builtin.copy:
+    content: "{{ item.content }}"
+    dest: "/var/lib/postgres/{{ item.filename }}"
+    owner: "{{ postgres_uid }}"
+    group: "{{ postgres_gid }}"
+    mode: 0600
+  with_items:
+  - { filename: postgresql.conf, content: "{{ postgres_config }}" }
+  - { filename: pg_ident.conf, content: "{{ postgres_config_ident }}" }
+  - { filename: pg_hba.conf, content: "{{ postgres_config_hba }}" }
+
+- name: ensure systemd postgres.service
+  notify: restart service postgres
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/postgres.service
+    mode: 0644
+    content: |
+      [Unit]
+      Requires=docker.service
+      After=docker.service
+      StartLimitIntervalSec=0
+      [Service]
+      ExecStartPre=-/usr/bin/docker rm --force %N
+      ExecStart=/usr/bin/docker run \
+        --name=%N \
+        --rm=true \
+        --pid=host \
+        --network={{ postgres_docker_network }} \
+        {% if postgres_docker_network != 'host' -%}
+        --publish=5432:5432 \
+        {% endif -%}
+        --stop-timeout=600 \
+        --workdir=/var/lib/postgres \
+        --user={{ postgres_uid }}:{{ postgres_gid }} \
+        --volume=/etc/localtime:/etc/localtime:ro \
+        --volume=/etc/timezone:/etc/timezone:ro \
+        --volume=/var/lib/postgres:/var/lib/postgres:rw \
+        --entrypoint=postgres \
+        {{ postgres_docker_image }} \
+          -D /var/lib/postgres -p 5432 --listen_addresses="*"
+      ExecReload=/bin/kill -s HUP $MAINPID
+      ExecStop=/usr/bin/docker stop %N
+      Restart=always
+      RestartSec=10
+      KillMode=process
+      [Install]
+      WantedBy=multi-user.target
+
+- name: execute handlers
+  meta: flush_handlers
+
+- name: start service postgres
+  ansible.builtin.systemd:
+    name: postgres
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- name: configure
+  include_tasks: configure.yml

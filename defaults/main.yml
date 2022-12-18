@@ -1,0 +1,38 @@
+---
+postgres_uid: 70
+postgres_gid: 70
+
+postgres_docker_image: postgres:latest
+postgres_docker_network: bridge
+
+postgres_roles: []
+postgres_databases: []
+
+postgres_config: |
+  max_connections = 100
+  shared_buffers = 128MB
+  dynamic_shared_memory_type = posix
+  max_wal_size = 1GB
+  min_wal_size = 80MB
+  log_timezone = 'UTC'
+  datestyle = 'iso, mdy'
+  timezone = 'UTC'
+  lc_messages = 'en_US.utf8'
+  lc_monetary = 'en_US.utf8'
+  lc_numeric = 'en_US.utf8'
+  lc_time = 'en_US.utf8'
+  default_text_search_config = 'pg_catalog.english'
+
+postgres_config_hba: |
+  # localhost
+  local all all trust
+  host all all 127.0.0.1/32 trust
+  host all all ::1/128 trust
+  # replication
+  local replication all trust
+  host replication all 127.0.0.1/32 trust
+  host replication all ::1/128 trust
+  # other
+  host all all all scram-sha-256
+
+postgres_config_ident: ""
