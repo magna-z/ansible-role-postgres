@@ -75,6 +75,7 @@
         --publish=5432:5432 \
         {% endif -%}
         --stop-timeout=600 \
+        --log-driver=none \
         --workdir=/var/lib/postgres \
         --user={{ postgres_uid }}:{{ postgres_gid }} \
         --volume=/etc/localtime:/etc/localtime:ro \
