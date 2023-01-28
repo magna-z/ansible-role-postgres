@@ -34,5 +34,13 @@
       login_user: postgres
       login_password: "{{ postgres_superuser_password }}"
     with_items: "{{ postgres_databases }}"
+  - name: ensure database extensions
+    community.postgresql.postgresql_ext:
+      name: "{{ item[1] }}"
+      db: "{{ item[0].name }}"
+      login_host: "{{ inventory_hostname }}"
+      login_user: postgres
+      login_password: "{{ postgres_superuser_password }}"
+    loop: "{{ postgres_databases | subelements('extensions', skip_missing=true)}}"
   delegate_to: localhost
   become: false
