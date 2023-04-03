@@ -14,33 +14,34 @@
 
 - name: ensure roles and databases
   block:
-  - name: ensure roles
-    community.postgresql.postgresql_user:
-      name: "{{ item.username }}"
-      password: "{{ item.password }}"
-      role_attr_flags: "{{ item.attributes | default([]) | join(',') }}"
-      login_host: "{{ inventory_hostname }}"
-      login_user: postgres
-      login_password: "{{ postgres_superuser_password }}"
-    with_items: "{{ postgres_roles }}"
-  - name: ensure databases
-    community.postgresql.postgresql_db:
-      name: "{{ item.name }}"
-      owner: "{{ item.owner | default(omit) }}"
-      encoding: "{{ item.encoding | default(omit) }}"
-      lc_collate: "{{ item.collate | default(omit) }}"
-      lc_ctype: "{{ item.ctype | default(omit) }}"
-      login_host: "{{ inventory_hostname }}"
-      login_user: postgres
-      login_password: "{{ postgres_superuser_password }}"
-    with_items: "{{ postgres_databases }}"
-  - name: ensure database extensions
-    community.postgresql.postgresql_ext:
-      name: "{{ item[1] }}"
-      db: "{{ item[0].name }}"
-      login_host: "{{ inventory_hostname }}"
-      login_user: postgres
-      login_password: "{{ postgres_superuser_password }}"
-    loop: "{{ postgres_databases | subelements('extensions', skip_missing=true)}}"
+    - name: ensure roles
+      community.postgresql.postgresql_user:
+        name: "{{ item.username }}"
+        password: "{{ item.password }}"
+        role_attr_flags: "{{ item.attributes | default([]) | join(',') }}"
+        login_host: "{{ inventory_hostname }}"
+        login_user: postgres
+        login_password: "{{ postgres_superuser_password }}"
+      with_items: "{{ postgres_roles }}"
+    - name: ensure databases
+      community.postgresql.postgresql_db:
+        name: "{{ item.name }}"
+        owner: "{{ item.owner | default(omit) }}"
+        encoding: "{{ item.encoding | default(omit) }}"
+        lc_collate: "{{ item.collate | default(omit) }}"
+        lc_ctype: "{{ item.ctype | default(omit) }}"
+        template: "{{ item.template | default(omit) }}"
+        login_host: "{{ inventory_hostname }}"
+        login_user: postgres
+        login_password: "{{ postgres_superuser_password }}"
+      with_items: "{{ postgres_databases }}"
+    - name: ensure database extensions
+      community.postgresql.postgresql_ext:
+        name: "{{ item[1] }}"
+        db: "{{ item[0].name }}"
+        login_host: "{{ inventory_hostname }}"
+        login_user: postgres
+        login_password: "{{ postgres_superuser_password }}"
+      loop: "{{ postgres_databases | subelements('extensions', skip_missing=true)}}"
   delegate_to: localhost
   become: false

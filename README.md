@@ -22,4 +22,4 @@ Configure and run vanila PostgreSQL from docker image as systemd.service.
 - **`postgres_roles`** *(type=list, default=[])* - Object list with roles in PostgreSQL. Delete object from list not delete role from PostgreSQL.  
   Object struct: `{*username: "...", *password: "...", attributes: ["..."]}`. `*` - is required parameters.
 - **`postgres_databases`** *(type=list, default=[])* - Object list with databases in PostgreSQL. Delete object from list not delete database from PostgreSQL.  
-  Object struct: `{*name: "...", owner: "...", encoding: "...", collate: "...", ctype: "...", extensions: ["..."]}`. `*` - is required parameters.
+  Object struct: `{*name: "...", owner: "...", encoding: "...", collate: "...", ctype: "...", template: "...", extensions: ["..."]}`. `*` - is required parameters.

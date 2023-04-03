@@ -2,7 +2,7 @@
 - name: check mandatory variables
   ansible.builtin.assert:
     that:
-    - postgres_superuser_password is defined
+      - postgres_superuser_password is defined
     quiet: true
 
 - name: ensure group
@@ -50,9 +50,9 @@
     group: "{{ postgres_gid }}"
     mode: 0600
   with_items:
-  - { filename: postgresql.conf, content: "{{ postgres_config }}" }
-  - { filename: pg_ident.conf, content: "{{ postgres_config_ident }}" }
-  - { filename: pg_hba.conf, content: "{{ postgres_config_hba }}" }
+    - { filename: postgresql.conf, content: "{{ postgres_config }}" }
+    - { filename: pg_ident.conf, content: "{{ postgres_config_ident }}" }
+    - { filename: pg_hba.conf, content: "{{ postgres_config_hba }}" }
 
 - name: ensure systemd postgres.service
   notify: restart service postgres
