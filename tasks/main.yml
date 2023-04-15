@@ -28,6 +28,23 @@
     mode: 0700
   register: _data_directory
 
+- name: ensure postgres binaries wrappers
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/{{ item }}"
+    owner: root
+    group: root
+    mode: 0755
+    content: |
+      #!/usr/bin/env bash
+      set -o noglob
+      exec docker exec -ti postgres {{ item }} $@
+  loop: "{{ _postgres_binaries_wrappers }}"
+
+- name: ensure pip module psycopg2
+  ansible.builtin.pip:
+    executable: pip3
+    name: [psycopg2-binary]
+
 - name: posgtres init
   community.docker.docker_container:
     detach: false
@@ -101,6 +118,13 @@
     daemon_reload: true
     enabled: true
     state: started
+
+- name: wait postgres
+  ansible.builtin.wait_for:
+    host: localhost
+    port: 5432
+    timeout: 60
+  retries: 5
 
 - name: configure
   include_tasks: configure.yml

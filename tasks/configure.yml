@@ -1,11 +1,4 @@
 ---
-- name: wait postgres
-  ansible.builtin.wait_for:
-    host: localhost
-    port: 5432
-    timeout: 60
-  retries: 5
-
 - name: ensure superuser password
   community.docker.docker_container_exec:
     container: postgres
@@ -19,9 +12,10 @@
         name: "{{ item.username }}"
         password: "{{ item.password }}"
         role_attr_flags: "{{ item.attributes | default([]) | join(',') }}"
-        login_host: "{{ inventory_hostname }}"
+        login_host: localhost
         login_user: postgres
         login_password: "{{ postgres_superuser_password }}"
+        state: "{{ (item.state is defined and item.state == 'absent') | ternary('absent', 'present') }}"
       with_items: "{{ postgres_roles }}"
     - name: ensure databases
       community.postgresql.postgresql_db:
@@ -31,17 +25,17 @@
         lc_collate: "{{ item.collate | default(omit) }}"
         lc_ctype: "{{ item.ctype | default(omit) }}"
         template: "{{ item.template | default(omit) }}"
-        login_host: "{{ inventory_hostname }}"
+        login_host: localhost
         login_user: postgres
         login_password: "{{ postgres_superuser_password }}"
+        state: "{{ (item.state is defined and item.state == 'absent') | ternary('absent', 'present') }}"
       with_items: "{{ postgres_databases }}"
     - name: ensure database extensions
       community.postgresql.postgresql_ext:
         name: "{{ item[1] }}"
         db: "{{ item[0].name }}"
-        login_host: "{{ inventory_hostname }}"
+        login_host: localhost
         login_user: postgres
         login_password: "{{ postgres_superuser_password }}"
       loop: "{{ postgres_databases | subelements('extensions', skip_missing=true)}}"
-  delegate_to: localhost
   become: false
