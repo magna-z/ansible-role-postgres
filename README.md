@@ -1,7 +1,7 @@
 postgres
 ---
 
-Configure and run vanila PostgreSQL from docker image as systemd.service.
+Configure and run vanila PostgreSQL as Docker container into systemd.service.
 
 
 ### Links:
@@ -13,7 +13,7 @@ Configure and run vanila PostgreSQL from docker image as systemd.service.
 
 - **`postgres_docker_image`** *(type=string, default="postgres:latest")* - Docker image for run as systemd.service.
 - **`postgres_docker_network`** *(type=string, default="bridge")* - Docker nerwork used as `--network=...`.
-- **`postgres_uid`**, **`postgres_uid`** *(type=number, default=70)* - System user and group for run PostgreSQL and store data.
+- **`postgres_uid`** & **`postgres_uid`** *(type=number, default=70)* - System user and group for run PostgreSQL and store data.
 
 - **`postgres_config`** *(type=string, default="see defaults/main.yml")* - Options for `postgresql.conf`.
 - **`postgres_config_hba`** *(type=string, default="see defaults/main.yml")* - Options for `pg_hba.conf`.
@@ -22,4 +22,4 @@ Configure and run vanila PostgreSQL from docker image as systemd.service.
 - **`postgres_roles`** *(type=list, default=[])* - Object list with roles in PostgreSQL. Delete object from list not delete role from PostgreSQL.  
   Object struct: `{*username: "...", *password: "...", attributes: ["..."], state: "present|absent"}`. `*` - is required parameters.
 - **`postgres_databases`** *(type=list, default=[])* - Object list with databases in PostgreSQL. Delete object from list not delete database from PostgreSQL.  
-  Object struct: `{*name: "...", owner: "...", encoding: "...", collate: "...", ctype: "...", template: "...", extensions: ["..."], state: "present|absent"}`. `*` - is required parameters.
+  Object struct: `{*name: "...", owner: "...", encoding: "...", collate: "...", ctype: "...", template: "...", schemas: [{name: "...", owner: "..."}], extensions: [{name: "..."}], state: "present|absent"}`. `*` - is required parameters.

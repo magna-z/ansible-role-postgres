@@ -33,11 +33,11 @@
     dest: "/usr/local/bin/{{ item }}"
     owner: root
     group: root
-    mode: 0755
+    mode: 0777
     content: |
       #!/usr/bin/env bash
       set -o noglob
-      exec docker exec -ti postgres {{ item }} $@
+      exec docker exec --tty --interactive postgres {{ item }} $@
   loop: "{{ _postgres_binaries_wrappers }}"
 
 - name: ensure pip module psycopg2

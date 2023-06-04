@@ -30,6 +30,15 @@
         login_password: "{{ postgres_superuser_password }}"
         state: "{{ (item.state is defined and item.state == 'absent') | ternary('absent', 'present') }}"
       with_items: "{{ postgres_databases }}"
+    - name: ensure database schemas
+      community.postgresql.postgresql_schema:
+        name: "{{ item[1] }}"
+        db: "{{ item[0].name }}"
+        owner: "{{ item[0].owner }}"
+        login_host: localhost
+        login_user: postgres
+        login_password: "{{ postgres_superuser_password }}"
+      loop: "{{ postgres_databases | subelements('schemas', skip_missing=true)}}"
     - name: ensure database extensions
       community.postgresql.postgresql_ext:
         name: "{{ item[1] }}"
