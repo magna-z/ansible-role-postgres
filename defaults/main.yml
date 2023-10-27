@@ -9,11 +9,11 @@ postgres_roles: []
 postgres_databases: []
 
 postgres_config: |
-  max_connections = 100
-  shared_buffers = 128MB
-  dynamic_shared_memory_type = posix
-  max_wal_size = 1GB
-  min_wal_size = 80MB
+  max_connections = '100'
+  shared_buffers = '128MB'
+  dynamic_shared_memory_type = 'posix'
+  max_wal_size = '1GB'
+  min_wal_size = '80MB'
   log_timezone = 'UTC'
   datestyle = 'iso, mdy'
   timezone = 'UTC'

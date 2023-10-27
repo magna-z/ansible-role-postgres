@@ -26,7 +26,7 @@
     owner: "{{ postgres_uid }}"
     group: "{{ postgres_gid }}"
     mode: 0700
-  register: _data_directory
+  register: _postgres_data_directory
 
 - name: ensure postgres binaries wrappers
   ansible.builtin.copy:
@@ -40,10 +40,12 @@
       exec docker exec --tty --interactive postgres {{ item }} $@
   loop: "{{ _postgres_binaries_wrappers }}"
 
-- name: ensure pip module psycopg2
-  ansible.builtin.pip:
-    executable: pip3
-    name: [psycopg2-binary]
+- name: ensure python psycopg2 module
+  ansible.builtin.apt:
+    name: [python3-psycopg2]
+    install_recommends: false
+    update_cache: true
+    cache_valid_time: "{{ '1d' | community.general.to_seconds | int }}"
 
 - name: posgtres init
   community.docker.docker_container:
@@ -56,7 +58,7 @@
     image: "{{ postgres_docker_image }}"
     user: "{{ postgres_uid }}:{{ postgres_gid }}"
     volumes: [/var/lib/postgres:/var/lib/postgres:rw]
-  when: _data_directory.changed
+  when: _postgres_data_directory.changed
 
 - name: ensure configs
   notify: reload service postgres

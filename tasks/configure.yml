@@ -3,7 +3,7 @@
   community.docker.docker_container_exec:
     container: postgres
     command: "psql --quiet --command=\"ALTER ROLE postgres WITH PASSWORD '{{ postgres_superuser_password }}';\""
-  when: _data_directory.changed
+  when: _postgres_data_directory.changed
 
 - name: ensure roles and databases
   block:
